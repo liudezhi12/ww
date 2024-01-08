@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="Keywords" content="">
     <meta name="Description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 添加viewport设置 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>刘德志</title>
     <style type="text/css">
         *{margin:0;padding:0;}
@@ -18,7 +18,6 @@
             height:180px;
             margin:auto;
             transform-style:preserve-3d;/*设置3D环境*/
-            touch-action: none; /* 防止默认的触摸滚动行为 */
         }
         #wrap img{
             position:absolute;
@@ -29,7 +28,7 @@
             -webkit-box-reflect:below 5px -webkit-linear-gradient(top,rgba(0,0,0,0) 40%,rgba(0,0,0,.5) 100%);
             border-radius:5px;/*圆角*/
         }
-        #wrap p {
+        #wrap p{
             position:absolute;
             left:50%;
             top:112%;
@@ -104,55 +103,55 @@
     var oWrap = document.getElementById("wrap");
     var aImg = oWrap.getElementsByTagName("img");
     var isTouchDevice = 'ontouchstart' in document.documentElement;
+    var lastX, lastY, minX, minY, roX = 0, roY = 0, timer;
 
-    // 添加触摸事件处理
-    if (isTouchDevice) {
-        var startTouchX, startTouchY;
-        oWrap.addEventListener('touchstart', function (e) {
-            clearInterval(timer);
-            var touch = e.touches[0];
-            startTouchX = touch.clientX;
-            startTouchY = touch.clientY;
-        });
-
-        oWrap.addEventListener('touchmove', function (e) {
-            var touch = e.touches[0];
-            var moveX = touch.clientX - startTouchX;
-            var moveY = touch.clientY - startTouchY;
-            roY += moveX * 0.2;
-            roX -= moveY * 0.1;
-            oWrap.style.transform = "rotateX("+roX+"deg) rotateY("+roY+"deg)";
-            startTouchX = touch.clientX;
-            startTouchY = touch.clientY;
-        });
-
-        oWrap.addEventListener('touchend', function () {
-            timer = setInterval(function(){
-                moveX *= 0.95;
-                moveY *= 0.95;
-                roY += moveX * 0.2;
-                roX -= moveY * 0.1;
-                oWrap.style.transform = "rotateX("+roX+"deg) rotateY("+roY+"deg)";
-                if (Math.abs(moveX) < 0.1 && Math.abs(moveY) < 0.1) {
-                    clearInterval(timer);
-                }
-            }, 1000/60);
-        });
+    function handleMove(e) {
+        var touch = e.touches[0];
+        var moveX = touch.clientX - lastX;
+        var moveY = touch.clientY - lastY;
+        roY += moveX * 0.2;
+        roX -= moveY * 0.1;
+        oWrap.style.transform = "rotateX("+roX+"deg) rotateY("+roY+"deg)";
+        lastX = touch.clientX;
+        lastY = touch.clientY;
     }
 
-    // 鼠标事件处理
-    var lastX, lastY, nowX, nowY, minX, minY, roX = 0, roY = 0, timer;
+    function handleEnd() {
+        timer = setInterval(function(){
+            minX *= 0.95;
+            minY *= 0.95;
+            roY += minX * 0.2;
+            roX -= minY * 0.1;
+            oWrap.style.transform = "rotateX("+roX+"deg) rotateY("+roY+"deg)";
+            if (Math.abs(minX) < 0.1 && Math.abs(minY) < 0.1) {
+                clearInterval(timer);
+            }
+        }, 1000/60);
+
+        document.removeEventListener('touchmove', handleMove);
+        document.removeEventListener('touchend', handleEnd);
+    }
+
+    oWrap.addEventListener('touchstart', function (e) {
+        clearInterval(timer);
+        var touch = e.touches[0];
+        lastX = touch.clientX;
+        lastY = touch.clientY;
+
+        document.addEventListener('touchmove', handleMove);
+        document.addEventListener('touchend', handleEnd);
+    });
 
     document.onmousedown = function(ev){
         clearInterval(timer);
-        var ev = ev||window.event;
+        var ev = ev || window.event;
         lastX = isTouchDevice ? ev.touches[0].clientX : ev.clientX;
         lastY = isTouchDevice ? ev.touches[0].clientY : ev.clientY;
 
-        this.onmousemove = function(ev){
-            var ev = ev||window.event;
-            nowX = isTouchDevice ? ev.touches[0].clientX : ev.clientX;
-            nowY = isTouchDevice ? ev.touches[0].clientY : ev.clientY;
+        document.onmousemove = function(ev){
+            var ev = ev || window.event;
+            var nowX = isTouchDevice ? ev.touches[0].clientX : ev.clientX;
+            var nowY = isTouchDevice ? ev.touches[0].clientY : ev.clientY;
 
             minX = nowX - lastX;
             minY = nowY - lastY;
@@ -165,18 +164,15 @@
             lastY = nowY;
         };
 
-        this.onmouseup = function(){
-            this.on
-
-mousemove = null;
-            this.onmouseup = null;
+        document.onmouseup = function(){
+            document.onmousemove = null;
+            document.onmouseup = null;
             timer = setInterval(function(){
                 minX *= 0.95;
                 minY *= 0.95;
                 roY += minX * 0.2;
                 roX -= minY * 0.1;
                 oWrap.style.transform = "rotateX("+roX+"deg) rotateY("+roY+"deg)";
-
                 if (Math.abs(minX) < 0.1 && Math.abs(minY) < 0.1) {
                     clearInterval(timer);
                 }
